@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Крестики-нолики: Масленица</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ff9e6d, #ff6b6b, #ffa500);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.92);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #d35400;
+            margin-bottom: 15px;
+            font-size: 2.8rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        h1::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 4px;
+            background: linear-gradient(90deg, #ff9e6d, #ff6b6b, #ffa500);
+            border-radius: 2px;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            color: #e67e22;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+        
+        .info-box {
+            background-color: #fff8e1;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+            text-align: left;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .info-box h3 {
+            color: #d35400;
+            margin-bottom: 8px;
+        }
+        
+        #status {
+            font-size: 1.8rem;
+            margin: 25px 0;
+            min-height: 40px;
+            font-weight: bold;
+            color: #e67e22;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #fff9e6;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 12px;
+            max-width: 500px;
+            margin: 0 auto 30px;
+        }
+        
+        .cell {
+            width: 100%;
+            aspect-ratio: 1;
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            border: 3px solid #e67e22;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.6rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.1), -5px -5px 10px rgba(255,255,255,0.8);
+            position: relative;
+            overflow: hidden;
+            color: #2c3e50;
+            padding: 5px;
+        }
+        
+        .cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(230, 126, 34, 0.5);
+            background: linear-gradient(145deg, #fff9e6, #ffecb3);
+        }
+        
+        .cell.x {
+            background: linear-gradient(145deg, #ffebee, #ffcdd2);
+            color: #c62828;
+            font-size: 3.5rem;
+            border-color: #e53935;
+            box-shadow: inset 0 0 20px rgba(229, 57, 53, 0.2);
+        }
+        
+        .cell.o {
+            background: linear-gradient(145deg, #e3f2fd, #bbdefb);
+            color: #1565c0;
+            font-size: 3.5rem;
+            border-color: #1e88e5;
+            box-shadow: inset 0 0 20px rgba(30, 136, 229, 0.2);
+        }
+        
+        .cell.x::before {
+            content: "×";
+        }
+        
+        .cell.o::before {
+            content: "○";
+        }
+        
+        #reset-button {
+            background: linear-gradient(120deg, #ff9e6d, #ff6b6b);
+            color: white;
+            border: none;
+            padding: 15px 45px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+        
+        #reset-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(120deg, #ff8c42, #e55d37);
+        }
+        
+        #reset-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .win-cell {
+            animation: pulse 1s infinite;
+            box-shadow: 0 0 20px 5px rgba(241, 196, 15, 0.8);
+            position: relative;
+            z-index: 10;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.7); }
+            70% { box-shadow: 0 0 20px 8px rgba(241, 196, 15, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); }
+        }
+        
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: #f1c40f;
+            border-radius: 0;
+            animation: fall linear forwards;
+        }
+        
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(360deg); }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            #status {
+                font-size: 1.5rem;
+            }
+            
+            #board {
+                grid-gap: 8px;
+                max-width: 95%;
+            }
+            
+            .cell {
+                font-size: 1.3rem;
+                padding: 3px;
+            }
+            
+            .cell.x, .cell.o {
+                font-size: 2.8rem;
+            }
+            
+            #reset-button {
+                padding: 12px 35px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Крестики-нолики: Масленица</h1>
+        <div class="subtitle">Празднуем последнюю неделю перед Великим постом!</div>
+        
+        <div class="info-box">
+            <h3>Об игре:</h3>
+            <p>Прочитайте слово в клетке, связанное с Масленицей, затем нажмите на неё, чтобы поставить свой знак (крестик или нолик). Побеждает тот, кто первым выстроит три своих знака в ряд.</p>
+        </div>
+        
+        <div id="status">Ходит игрок: <span style="color:#c62828">X</span></div>
+        
+        <div id="board">
+            <div class="cell" data-index="0" data-word="блины">блины</div>
+            <div class="cell" data-index="1" data-word="чучело">чучело</div>
+            <div class="cell" data-index="2" data-word="масленица">масленица</div>
+            <div class="cell" data-index="3" data-word="блинчики">блинчики</div>
+            <div class="cell" data-index="4" data-word="зима">зима</div>
+            <div class="cell" data-index="5" data-word="весна">весна</div>
+            <div class="cell" data-index="6" data-word="катание">катание</div>
+            <div class="cell" data-index="7" data-word="гулянье">гулянье</div>
+            <div class="cell" data-index="8" data-word="сжигание">сжигание</div>
+        </div>
+        
+        <button id="reset-button">Начать заново</button>
+        
+        <div class="info-box">
+            <h3>Слова о Масленице:</h3>
+            <p><strong>Блины</strong> — символ солнца и главное угощение на Масленицу.</p>
+            <p><strong>Чучело</strong> — соломенное чучело Масленицы, которое сжигают в последний день праздника.</p>
+            <p><strong>Катание</strong> — традиционные развлечения на санях и лошадях.</p>
+            <p><strong>Сжигание</strong> — ритуал прощания с зимой и встречи весны.</p>
+        </div>
+    </div>
+    
+    <div class="celebration" id="celebration"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cells = document.querySelectorAll('.cell');
+            const status = document.getElementById('status');
+            const resetButton = document.getElementById('reset-button');
+            const celebration = document.getElementById('celebration');
+            
+            let currentPlayer = 'X';
+            let gameActive = true;
+            let boardState = Array(9).fill('');
+            
+            // Winning combinations
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+                [0, 4, 8], [2, 4, 6]             // diagonals
+            ];
+            
+            // Initialize the game
+            function initGame() {
+                cells.forEach(cell => {
+                    cell.addEventListener('click', () => handleCellClick(cell));
+                    cell.textContent = cell.dataset.word;
+                    cell.classList.remove('x', 'o', 'win-cell');
+                });
+                
+                currentPlayer = 'X';
+                gameActive = true;
+                boardState = Array(9).fill('');
+                status.innerHTML = `Ходит игрок: <span style="color:#c62828">X</span>`;
+                celebration.innerHTML = '';
+            }
+            
+            // Handle cell click
+            function handleCellClick(cell) {
+                const index = parseInt(cell.dataset.index);
+                
+                // Check if cell is already filled or game is over
+                if (boardState[index] !== '' || !gameActive) {
+                    return;
+                }
+                
+                // Update board state and UI
+                boardState[index] = currentPlayer;
+                cell.textContent = '';
+                cell.classList.add(currentPlayer.toLowerCase());
+                
+                // Check for win or draw
+                if (checkWin()) {
+                    endGame(false);
+                    return;
+                }
+                
+                if (checkDraw()) {
+                    endGame(true);
+                    return;
+                }
+                
+                // Switch player
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                updateStatus();
+            }
+            
+            // Check for win
+            function checkWin() {
+                for (let pattern of winPatterns) {
+                    const [a, b, c] = pattern;
+                    if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+                        // Highlight winning cells
+                        cells[a].classList.add('win-cell');
+                        cells[b].classList.add('win-cell');
+                        cells[c].classList.add('win-cell');
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            // Check for draw
+            function checkDraw() {
+                return boardState.every(cell => cell !== '');
+            }
+            
+            // Update status message
+            function updateStatus() {
+                status.innerHTML = `Ходит игрок: <span style="color:${currentPlayer === 'X' ? '#c62828' : '#1565c0'}">${currentPlayer}</span>`;
+            }
+            
+            // End the game
+            function endGame(isDraw) {
+                gameActive = false;
+                
+                if (isDraw) {
+                    status.innerHTML = '<span style="color:#7f8c8d">Ничья! Дружеская неделя Масленицы!</span>';
+                } else {
+                    status.innerHTML = `Победил игрок <span style="color:${currentPlayer === 'X' ? '#c62828' : '#1565c0'}">${currentPlayer}</span>!`;
+                    createCelebration();
+                }
+            }
+            
+            // Create celebration effect
+            function createCelebration() {
+                celebration.innerHTML = '';
+                
+                // Create confetti
+                for (let i = 0; i < 150; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.classList.add('confetti');
+                    
+                    // Random position, size, color and animation duration
+                    const posX = Math.random() * 100;
+                    const delay = Math.random() * 2;
+                    const duration = Math.random() * 3 + 2;
+                    const size = Math.random() * 10 + 5;
+                    const colors = ['#ff9e6d', '#ff6b6b', '#ffa500', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6'];
+                    
+                    confetti.style.left = `${posX}%`;
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.width = `${size}px`;
+                    confetti.style.height = `${size}px`;
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    confetti.style.animationDuration = `${duration}s`;
+                    confetti.style.animationDelay = `${delay}s`;
+                    
+                    celebration.appendChild(confetti);
+                }
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    celebration.innerHTML = '';
+                }, 5000);
+            }
+            
+            // Reset button event
+            resetButton.addEventListener('click', initGame);
+            
+            // Initialize the game on load
+            initGame();
+        });
+    </script>
+</body>
+</html>
